@@ -7,7 +7,12 @@ from telegram import (
     BotCommandScopeDefault,
     BotCommandScopeAllGroupChats,
 )
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+    CallbackQueryHandler,
+)
 import os
 import asyncio
 from aiohttp import web
@@ -15,8 +20,10 @@ import random
 
 TOKEN = os.getenv("BOT_TOKEN")
 
-# ====== /dice — Бросок кубиков ======
+
+# ====== Команда /dice ======
 async def dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("[LOG] Получена команда /dice")
     dice_buttons = [
         [InlineKeyboardButton("🎲 d4", callback_data="roll_d4"),
          InlineKeyboardButton("🎲 d6", callback_data="roll_d6")],
@@ -27,8 +34,10 @@ async def dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     await update.message.reply_text("Выбери кубик для броска:", reply_markup=InlineKeyboardMarkup(dice_buttons))
 
-# ====== /date — Календарь ======
+
+# ====== Команда /date ======
 async def date(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("[LOG] Получена команда /date")
     if update.effective_chat.type == "private":
         keyboard = [[
             InlineKeyboardButton("Открыть календарь", web_app=WebAppInfo(url="https://earthwormxd.github.io/game-calendar-iframe/"))
@@ -39,25 +48,39 @@ async def date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]]
     await update.message.reply_text("Вот календарь 👇", reply_markup=InlineKeyboardMarkup(keyboard))
 
-# ====== Обработка нажатий на кубы ======
+
+# ====== Обработка нажатия на кнопку кубика ======
 async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    dice_type = query.data.split("_")[1]  # например "d20"
+    dice_type = query.data.split("_")[1]
     sides = int(dice_type)
     result = random.randint(1, sides)
+
+    user = query.from_user
+    print(f"[LOG] {user.username or user.first_name} бросил {dice_type} → результат: {result}")
+
     await query.edit_message_text(f"🎲 Брошен {dice_type} → результат: {result}")
 
-# ====== Установка команд ======
+
+# ====== Отладочная команда /ping ======
+async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("[LOG] Получена команда /ping")
+    await update.message.reply_text("pong")
+
+
+# ====== Установка команд Telegram ======
 async def set_commands(app):
     commands = [
-        BotCommand("dice", "Бросить кубики"),
-        BotCommand("date", "Календарь сессий")
+        BotCommand("dice", "Бросить кубики 🎲"),
+        BotCommand("date", "Календарь сессий 📅"),
+        BotCommand("ping", "Проверка связи 🛠")
     ]
     await app.bot.set_my_commands(commands, scope=BotCommandScopeDefault())
     await app.bot.set_my_commands(commands, scope=BotCommandScopeAllGroupChats())
 
-# ====== Запуск Telegram бота ======
+
+# ====== Запуск бота ======
 async def start_bot():
     app = ApplicationBuilder().token(TOKEN).build()
 
@@ -65,15 +88,18 @@ async def start_bot():
 
     app.add_handler(CommandHandler("dice", dice))
     app.add_handler(CommandHandler("date", date))
+    app.add_handler(CommandHandler("ping", ping))
     app.add_handler(CallbackQueryHandler(roll_dice, pattern="^roll_"))
 
     await app.initialize()
     await app.start()
     print("🤖 Telegram Bot запущен")
 
-# ====== Пустой HTTP-сервер для Render ======
+
+# ====== HTTP-сервер для Render ======
 async def handle(request):
     return web.Response(text="Bot is running!")
+
 
 async def start_web_server():
     app = web.Application()
@@ -85,7 +111,8 @@ async def start_web_server():
     await site.start()
     print(f"🌐 HTTP сервер слушает порт {port}")
 
-# ====== Основной запуск ======
+
+# ====== Запуск ======
 async def main():
     await asyncio.gather(
         start_bot(),
