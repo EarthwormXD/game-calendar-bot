@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: game-calendar-bot
-    env: docker
-    dockerfilePath: ./Dockerfile
-    envVars:
-      - key: BOT_TOKEN
-        sync: false
