@@ -32,25 +32,30 @@ async def dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     await update.message.reply_text("Выбери куб для броска:", reply_markup=InlineKeyboardMarkup(buttons))
 
-# === Обработка нажатий ===
+# === Обработка бросков ===
 async def handle_roll_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()  # Закрыть "часики"
+    await query.answer()
 
     data = query.data
     if data.startswith("roll_d"):
-        dice_type = int(data.split("_")[1][1:])  # Пример: "roll_d20" → 20
-        result = random.randint(1, dice_type)
-        await query.edit_message_text(f"🎲 Бросок {dice_type}-гранного куба: *{result}*", parse_mode="Markdown")
+        dice_type = int(data.split("_")[1][1:])  # d6 → 6
 
-# === Команды ===
+        if dice_type == 6:
+            # Используем встроенную анимацию Telegram
+            await query.message.reply_dice(emoji="🎲")
+        else:
+            result = random.randint(1, dice_type)
+            await query.message.reply_text(f"🎲 Бросок d{dice_type}: *{result}*", parse_mode="Markdown")
+
+# === Установка команд ===
 async def set_commands(app):
     await app.bot.set_my_commands([
         BotCommand("date", "Календарь сессий"),
         BotCommand("dice", "Кубы")
     ])
 
-# === Основной запуск ===
+# === Запуск ===
 def main():
     app = ApplicationBuilder().token(TOKEN).post_init(set_commands).build()
 
