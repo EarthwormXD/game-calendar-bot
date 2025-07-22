@@ -21,16 +21,23 @@ async def date(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Открой календарь по ссылке 👇", reply_markup=InlineKeyboardMarkup(keyboard))
 
 # === /dice ===
-async def dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    buttons = [
-        [InlineKeyboardButton("🎲 d4", callback_data="roll_d4"),
-         InlineKeyboardButton("🎲 d6", callback_data="roll_d6")],
-        [InlineKeyboardButton("🎲 d8", callback_data="roll_d8"),
-         InlineKeyboardButton("🎲 d10", callback_data="roll_d10")],
-        [InlineKeyboardButton("🎲 d12", callback_data="roll_d12"),
-         InlineKeyboardButton("🎲 d20", callback_data="roll_d20")],
-    ]
-    await update.message.reply_text("Выбери куб для броска:", reply_markup=InlineKeyboardMarkup(buttons))
+async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    dice_type = query.data.split("_")[1]  # например "d20"
+    sides = int(dice_type)
+    result = random.randint(1, sides)
+
+    user = query.from_user
+    chat_id = query.message.chat.id
+
+    print(f"[LOG] {user.username or user.first_name} бросил {dice_type} → результат: {result}")
+
+    # Вместо изменения кнопок — просто отправим новое сообщение
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=f"🎲 Брошен {dice_type} → результат: {result}"
+    )
 
 # === Обработка нажатий ===
 async def handle_roll_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
