@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppI
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEB_APP_URL = "https://earthwormxd.github.io/telegram-calendar-app/"  # замени на свой
+WEB_APP_URL = "https://earthwormxd.github.io/telegram-calendar-app/"  # заменён на твой сайт
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
