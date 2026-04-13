@@ -2,6 +2,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppI
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import os
 import random
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TOKEN = os.getenv("BOT_TOKEN")
 
@@ -62,7 +65,7 @@ def main():
     app = ApplicationBuilder().token(TOKEN).post_init(set_commands).build()
 
     app.add_handler(CommandHandler("date", date))
-    app.add_handler(CommandHandler("dice", dice))
+    app.add_handler(CommandHandler("dice", roll_dice))
     app.add_handler(CallbackQueryHandler(handle_roll_callback))
 
     app.run_polling()
