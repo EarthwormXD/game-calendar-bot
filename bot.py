@@ -25,33 +25,35 @@ async def date(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === /dice ===
 async def roll_dice(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    dice_type = query.data.split("_")[1]  # например "d20"
-    sides = int(dice_type)
-    result = random.randint(1, sides)
+    keyboard = [
+        [
+            InlineKeyboardButton("D4", callback_data="roll_d4"),
+            InlineKeyboardButton("D6", callback_data="roll_d6"),
+            InlineKeyboardButton("D8", callback_data="roll_d8"),
+        ],
+        [
+            InlineKeyboardButton("D10", callback_data="roll_d10"),
+            InlineKeyboardButton("D12", callback_data="roll_d12"),
+            InlineKeyboardButton("D20", callback_data="roll_d20"),
+        ],
+        [
+            InlineKeyboardButton("D100", callback_data="roll_d100"),
+        ],
+    ]
+    await update.message.reply_text("Выбери кубик 🎲", reply_markup=InlineKeyboardMarkup(keyboard))
 
-    user = query.from_user
-    chat_id = query.message.chat.id
-
-    print(f"[LOG] {user.username or user.first_name} бросил {dice_type} → результат: {result}")
-
-    # Вместо изменения кнопок — просто отправим новое сообщение
-    await context.bot.send_message(
-        chat_id=chat_id,
-        text=f"🎲 Брошен {dice_type} → результат: {result}"
-    )
-
-# === Обработка нажатий ===
+# === Обработка нажатий на кубики ===
 async def handle_roll_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()  # Закрыть "часики"
+    await query.answer()
 
     data = query.data
     if data.startswith("roll_d"):
         dice_type = int(data.split("_")[1][1:])  # Пример: "roll_d20" → 20
         result = random.randint(1, dice_type)
-        await query.edit_message_text(f"🎲 Бросок {dice_type}-гранного куба: *{result}*", parse_mode="Markdown")
+        user = query.from_user
+        print(f"[LOG] {user.username or user.first_name} бросил d{dice_type} → результат: {result}")
+        await query.message.reply_text(f"🎲 d{dice_type} → *{result}*", parse_mode="Markdown")
 
 # === Команды ===
 async def set_commands(app):
